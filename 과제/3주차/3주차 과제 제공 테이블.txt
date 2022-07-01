@@ -1,0 +1,228 @@
+/* Q1 : 1NF -> 2NF*/
+DROP TABLE STUDENT_GRADE CASCADE CONSTRAINTS PURGE;
+DROP TABLE STUDENT_GRADE_2NF CASCADE CONSTRAINTS PURGE; 
+DROP TABLE COURSE_2NF CASCADE CONSTRAINTS PURGE; 
+
+CREATE TABLE STUDENT_GRADE(
+     Sid VARCHAR(10) NOT NULL,
+     Cid VARCHAR(10) NOT NULL,
+     Grade VARCHAR(5),
+     Cname VARCHAR(15),
+     Cunit VARCHAR(2),
+     PRIMARY KEY(Sid, Cid));
+
+INSERT INTO STUDENT_GRADE VALUES('2016127059','C100','A','C언어','3');
+INSERT INTO STUDENT_GRADE VALUES('2016127060','C200','B','데이터베이스','3');
+INSERT INTO STUDENT_GRADE VALUES('2016127061','C200','B','데이터베이스','3');
+INSERT INTO STUDENT_GRADE VALUES('2016127062','C300','C','프로그래밍','3');
+
+COMMIT;
+
+-------------------------------------------------------------------------------------------------------
+
+CREATE TABLE STUDENT_GRADE1(
+     Sid VARCHAR(10) NOT NULL,
+     Cid VARCHAR(10) NOT NULL,
+     Grade VARCHAR(5),
+     PRIMARY KEY(Sid, Cid));
+
+INSERT INTO STUDENT_GRADE1 VALUES('2016127059','C100','A');
+INSERT INTO STUDENT_GRADE1 VALUES('2016127060','C200','B');
+INSERT INTO STUDENT_GRADE1 VALUES('2016127061','C200','B');
+INSERT INTO STUDENT_GRADE1 VALUES('2016127062','C300','C');
+
+COMMIT;
+
+CREATE TABLE STUDENT_CID(
+     Cid VARCHAR(10) NOT NULL,
+     Cname VARCHAR(15),
+     Cunit VARCHAR(2),
+     PRIMARY KEY(Cid));
+
+INSERT INTO STUDENT_CID VALUES('C100','C언어','3');
+INSERT INTO STUDENT_CID VALUES('C200','데이터베이스','3');
+INSERT INTO STUDENT_CID VALUES('C300','프로그래밍','3');
+
+COMMIT;
+
+SELECT * FROM STUDENT_GRADE;
+SELECT * FROM STUDENT_GRADE1;
+SELECT * FROM STUDENT_CID;
+SELECT CID
+FROM STUDENT_GRADE1
+WHERE CID NOT IN (SELECT SG1.CID
+                     FROM STUDENT_GRADE1 SG1, STUDENT_CID SC
+                     WHERE SG1.CID = SC.CID);
+
+/* Q2 : 2NF -> 3NF*/
+DROP TABLE BOOK CASCADE CONSTRAINTS PURGE; 
+DROP TABLE BOOK1_3NF CASCADE CONSTRAINTS PURGE; 
+DROP TABLE BOOK2_3NF CASCADE CONSTRAINTS PURGE; 
+
+CREATE TABLE BOOK(
+     Book_title VARCHAR(25) NOT NULL,
+     Authorname VARCHAR(25),
+     Book_type VARCHAR(15),
+     Location VARCHAR(5),
+     Publisher VARCHAR(25),
+     PRIMARY KEY(Book_title));
+
+INSERT INTO BOOK VALUES('Cinderella','Daisy Fisher','Fairy tale','A1','Disney');
+INSERT INTO BOOK VALUES('The little Mermaid','Hans Christian Andersen','Fairy tale','A1','C.A. Reitzel');
+INSERT INTO BOOK VALUES('Harry Potter','J. K. Rowling','Fantasy novel','B1','Bloomsbury Publishing');
+INSERT INTO BOOK VALUES('The Lord of the Rings','J. R. R. Tolkien','Fantasy novel','B1','Harper Collins');
+
+COMMIT;
+
+---------------------------------------------------------------------------------------------------------
+
+CREATE TABLE BOOK1(
+     Book_title VARCHAR(25) NOT NULL,
+     Authorname VARCHAR(25),
+     Book_type VARCHAR(15),
+     Publisher VARCHAR(25),
+     PRIMARY KEY(Book_title));
+
+INSERT INTO BOOK1 VALUES('Cinderella','Daisy Fisher','Fairy tale','Disney');
+INSERT INTO BOOK1 VALUES('The little Mermaid','Hans Christian Andersen','Fairy tale','C.A. Reitzel');
+INSERT INTO BOOK1 VALUES('Harry Potter','J. K. Rowling','Fantasy novel','Bloomsbury Publishing');
+INSERT INTO BOOK1 VALUES('The Lord of the Rings','J. R. R. Tolkien','Fantasy novel','Harper Collins');
+
+COMMIT;
+
+CREATE TABLE BOOK_TYPE(
+     Book_type VARCHAR(15),
+     Location VARCHAR(5),
+     PRIMARY KEY(Book_type));
+
+INSERT INTO BOOK_TYPE VALUES('Fairy tale','A1');
+INSERT INTO BOOK_TYPE VALUES('Fantasy novel','B1');
+
+COMMIT;
+
+SELECT * FROM BOOK;
+SELECT * FROM BOOK1;
+SELECT * FROM BOOK_TYPE;
+SELECT Book_type
+  FROM BOOK1
+  WHERE Book_type NOT IN (SELECT B1.Book_type
+                          FROM BOOK1 B1, BOOK_TYPE BT
+                          WHERE B1.Book_type = BT.Book_type);
+
+
+
+/* Q3 : 3NF -> BCNF*/
+DROP TABLE STAFF_MEETING CASCADE CONSTRAINTS PURGE; 
+DROP TABLE STAFF_MEETING_BCNF CASCADE CONSTRAINTS PURGE; 
+DROP TABLE STAFF_MEETING_EMPLOYEE_BCNF CASCADE CONSTRAINTS PURGE; 
+
+CREATE TABLE STAFF_MEETING(
+     ProjectName VARCHAR(20) NOT NULL,
+     MeetingDate DATE NOT NULL,
+     EmployeeName VARCHAR(10) NOT NULL,
+     PRIMARY KEY(ProjectName, MeetingDate));
+
+INSERT INTO STAFF_MEETING VALUES('School Project',to_date('2020-04-06','yyyy-mm-dd'),'홍길동');
+INSERT INTO STAFF_MEETING VALUES('Programming Project',to_date('2020-04-06','yyyy-mm-dd'),'홍길장');
+INSERT INTO STAFF_MEETING VALUES('Robot Project',to_date('2020-07-07','yyyy-mm-dd'),'홍길돌');
+INSERT INTO STAFF_MEETING VALUES('Basic Project',to_date('2020-02-15','yyyy-mm-dd'),'홍길순');
+
+COMMIT;
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE STAFF_MEETING1(
+     MeetingDate DATE NOT NULL,
+     EmployeeName VARCHAR(10) NOT NULL,
+     PRIMARY KEY(MeetingDate, EmployeeName));
+
+INSERT INTO STAFF_MEETING1 VALUES(to_date('2020-04-06','yyyy-mm-dd'),'홍길동');
+INSERT INTO STAFF_MEETING1 VALUES(to_date('2020-04-06','yyyy-mm-dd'),'홍길장');
+INSERT INTO STAFF_MEETING1 VALUES(to_date('2020-07-07','yyyy-mm-dd'),'홍길돌');
+INSERT INTO STAFF_MEETING1 VALUES(to_date('2020-02-15','yyyy-mm-dd'),'홍길순');
+
+COMMIT;
+
+
+CREATE TABLE STAFF_MEETING2(
+     EmployeeName VARCHAR(10) NOT NULL,
+     ProjectName VARCHAR(20) NOT NULL,
+     PRIMARY KEY(EmployeeName));
+
+INSERT INTO STAFF_MEETING2 VALUES('홍길동', 'School Project');
+INSERT INTO STAFF_MEETING2 VALUES('홍길장', 'Programming Project');
+INSERT INTO STAFF_MEETING2 VALUES('홍길돌', 'Robot Project');
+INSERT INTO STAFF_MEETING2 VALUES('홍길순', 'Basic Project');
+
+COMMIT;
+
+SELECT * FROM STAFF_MEETING;
+SELECT * FROM STAFF_MEETING1;
+SELECT * FROM STAFF_MEETING2;
+
+ SELECT EmployeeName
+  FROM STAFF_MEETING1
+  WHERE EmployeeName NOT IN (SELECT SM1.EmployeeName
+                             FROM STAFF_MEETING1 SM1, STAFF_MEETING2 SM2
+                             WHERE SM1.EmployeeName = SM2.EmployeeName);
+
+/* Q4 : BCNF -> 4NF*/
+DROP TABLE MEMBER CASCADE CONSTRAINTS PURGE; 
+DROP TABLE MEMBER_SIBLING_4NF CASCADE CONSTRAINTS PURGE; 
+DROP TABLE MEMBER_HOBBY_4NF CASCADE CONSTRAINTS PURGE;
+
+CREATE TABLE MEMBER(
+     Name VARCHAR(10) NOT NULL,
+     Sibling VARCHAR(10) NOT NULL,
+     Hobby VARCHAR(20) NOT NULL,
+     PRIMARY KEY(Name, Sibling, Hobby));
+
+INSERT INTO MEMBER VALUES('Chau','Eileen','Scuba diving');
+INSERT INTO MEMBER VALUES('Chau','Jonathan','Scuba diving');
+INSERT INTO MEMBER VALUES('Green','Nikki','Embroidery');
+INSERT INTO MEMBER VALUES('Jones','Frank','Model boats');
+INSERT INTO MEMBER VALUES('Jones','Frank','Scuba diving');
+INSERT INTO MEMBER VALUES('Jones','Fred','Model boats');
+INSERT INTO MEMBER VALUES('Jones','Fred','Scuba diving');
+INSERT INTO MEMBER VALUES('Jones','Sally','Model boats');
+INSERT INTO MEMBER VALUES('Jones','Sally','Scuba diving');
+
+COMMIT;
+
+--------------------------------------------------------------------------------------
+
+CREATE TABLE MEMBER_S(
+     Name VARCHAR(10) NOT NULL,
+     Sibling VARCHAR(10) NOT NULL,
+     PRIMARY KEY(Name, Sibling));
+
+INSERT INTO MEMBER_S VALUES('Chau','Eileen');
+INSERT INTO MEMBER_S VALUES('Chau','Jonathan');
+INSERT INTO MEMBER_S VALUES('Green','Nikki');
+INSERT INTO MEMBER_S VALUES('Jones','Frank');
+INSERT INTO MEMBER_S VALUES('Jones','Fred');
+INSERT INTO MEMBER_S VALUES('Jones','Sally');
+
+COMMIT;
+
+CREATE TABLE MEMBER_H(
+     Name VARCHAR(10) NOT NULL,
+     Hobby VARCHAR(20) NOT NULL,
+     PRIMARY KEY(Name, Hobby));
+
+INSERT INTO MEMBER_H VALUES('Chau','Scuba diving');
+INSERT INTO MEMBER_H VALUES('Green','Embroidery');
+INSERT INTO MEMBER_H VALUES('Jones','Model boats');
+INSERT INTO MEMBER_H VALUES('Jones','Scuba diving');
+
+COMMIT;
+
+SELECT * FROM MEMBER;
+SELECT * FROM MEMBER_S;
+SELECT * FROM MEMBER_H;
+
+SELECT NAME
+ FROM MEMBER_S
+ WHERE NAME NOT IN (SELECT MS.NAME
+                    FROM MEMBER_S MS, MEMBER_H MH
+                    WHERE MS.NAME = MH.NAME);

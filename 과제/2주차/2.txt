@@ -1,0 +1,87 @@
+INSERT INTO ITEM VALUES('1', 'QE Dining Set', to_date('2015-04-07','yyyy-mm-dd'), 'Eastern Treasures', 'Manila', '2', '403405', '0.01774'); 
+INSERT INTO ITEM VALUES('2', 'Willow Serving Dishes', to_date('2015-07-15','yyyy-mm-dd'), 'Jade Antiques', 'Singapore', '75', '102', '0.5903'); 
+INSERT INTO ITEM VALUES('3', 'Large Bureau', '2015-07-17', 'Eastern Sales', 'Singapore', 8, 2000, 0.5903); 
+INSERT INTO ITEM VALUES('Brass lamps', '2015-07-20', 'Jade Antiques', 'Singapore', 40, 50, 0.5903);
+
+INSERT INTO SHIPMENT VALUES('International', 488955, '2015-08-05', '2015-09-11', 18000.00);
+
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber
+FROM SHIPMENT
+WHERE InsuredValue > 10000.00;
+
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber
+FROM SHIPMENT
+WHERE ShipperName LIKE'AB%';
+
+---------------------------------------------------------------------------------------
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber, ArrivalDate
+FROM SHIPMENT
+WHERE EXTRACT (MONTH FROM DepartureDate) = 12;
+
+MSSQL
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber, ArrivalDate
+FROM SHIPMENT
+WHERE MONTH (DepartureDate) = 12;
+---------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber, ArrivalDate
+FROM SHIPMENT
+WHERE EXTRACT (DAY FROM DepartureDate) = 10;
+
+MSSQL
+SELECT ShipmentID, ShipperName, ShipperInvoiceNumber, ArrivalDate
+FROM SHIPMENT
+WHERE DAY (DepartureDate) = 10;
+---------------------------------------------------------------------------------------
+
+SELECT MAX(InsuredValue) AS MaxInsuredValue,
+MIN(InsuredValue) AS MinInsuredValue,
+AVG(InsuredValue) AS AVGInsuredVALue
+FROM SHIPMENT;
+
+SELECT ItemID, Description, Store, LocalCurrencyAmount * ExchangeRate AS USCurrencyAmount
+FROM ITEM;
+
+SELECT City, Store,
+COUNT(*) AS City_Store_Combination_Count
+FROM ITEM
+GROUP BY City, Store;
+
+SELECT ShipperName, ShipmentID, DepartureDate
+FROM SHIPMENT
+WHERE ShipmentID IN
+(SELECT ShipmentID
+FROM SHIPMENT_ITEM
+WHERE Value >= 1000)
+ORDER BY ShipperName, DepartureDate DESC;
+
+SELECT ShipperName, ShipmentID, DepartureDate
+FROM SHIPMENT
+WHERE ShipmentID IN
+(SELECT ShipmentID
+FROM SHIPMENT_ITEM
+WHERE ItemID IN
+(SELECT ItemID
+FROM ITEM
+WHERE City = 'Singapore'))
+ORDER BY ShipperName, DepartureDate DESC;
+
+------------------------------------------------------------------------------------
+INSERT INTO SHIPMENT VALUES('7', 'Worldwide', '98765432', to_date('2020-09-10','yyyy-mm-dd'), to_date('2020-09-14','yyyy-mm-dd'), '23000.00');
+
+commit;
+MSSQL
+INSERT INTO SHIPMENT VALUES('Worldwide', '98765432', '2020-09-10', '2020-09-14', 23000.00);
+------------------------------------------------------------------------------------
+
+UPDATE SHIPMENT
+SET ShipperInvoiceNumber = '12345678', DepartureDate = '2020-09-12', InsuredValue = '24000.00'
+WHERE ShipmentID = 7;
+
+commit;
+
+DELETE FROM SHIPMENT
+WHERE ShipmentID = 7;
+
+commit;
