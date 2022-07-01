@@ -1,0 +1,69 @@
+SQL> declare
+  2  max_sal emp.sal%type;
+  3  min_sal emp.sal%type;
+  4  begin
+  5  select max(sal), min(sal)
+  6  into max_sal, min_sal
+  7  from emp;
+  8  
+  9  dbms_output.put_line('사원 중에 최고 급여는 ' || max_sal || '원, 최저 급여는 ' || min_sal || '원 이다.');
+ 10  end;
+ 11  /
+사원 중에 최고 급여는 5000원, 최저 급여는 800원 이다.                           
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> declare
+  2  i number := 0;
+  3  str varchar2(10) := NULL;
+  4  begin
+  5  for i in 1..10 loop
+  6  str := str || '*';
+  7  dbms_output.put_line(str);
+  8  end loop;
+  9  end;
+ 10  /
+*                                                                               
+**                                                                              
+***                                                                             
+****                                                                            
+*****                                                                           
+******                                                                          
+*******                                                                         
+********                                                                        
+*********                                                                       
+**********                                                                      
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> declare
+  2  type grade_table is table of salgrade.grade%type index by binary_integer;
+  3  type losal_table is table of salgrade.losal%type index by binary_integer;
+  4  type hisal_table is table of salgrade.hisal%type index by binary_integer;
+  5  v_empno emp.empno%type := 7698;
+  6  v_sal emp.sal%type;
+  7  grade_tab grade_table;
+  8  losal_tab losal_table;
+  9  hisal_tab hisal_table;
+ 10  i binary_integer := 0;
+ 11  begin
+ 12  select empno, sal
+ 13  into v_empno, v_sal
+ 14  from emp
+ 15  where empno = v_empno;
+ 16  for sal_list in(select grade, losal, hisal from salgrade) loop
+ 17  i := i + 1;
+ 18  grade_tab(i) := sal_list.grade;
+ 19  losal_tab(i) := sal_list.losal;
+ 20  hisal_tab(i) := sal_list.hisal;
+ 21  if( v_sal >= losal_tab(i) and v_sal <= hisal_tab(i)) then
+ 22  dbms_output.put_line('사원 번호가 ' || v_empno || '인 사원의 급여의 등급은 ' || i || '이다.');
+ 23  end if;
+ 24  end loop;
+ 25  end;
+ 26  /
+사원 번호가 7698인 사원의 급여의 등급은 4이다.                                  
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> spool off
