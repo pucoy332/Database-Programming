@@ -1,0 +1,201 @@
+SQL> DECLARE
+  2  nYear NUMBER;
+  3  nSemester NUMBER;
+  4  nCnt NUMBER;
+  5  sStudentId VARCHAR2(10);
+  6  sCourseId VARCHAR2(10);
+  7  nCourseId VARCHAR2(10);
+  8  nCourseIdNo NUMBER;
+  9  CURSOR duplicate(sStudentId VARCHAR2, sCourseId VARCHAR2,
+ 10  nCourseId VARCHAR2, nCourseIdNo NUMBER) IS
+ 11  SELECT COUNT(*)
+ 12  FROM (SELECT t_time
+ 13  FROM teach
+ 14  WHERE t_year = nYear and t_semester = nSemester
+ 15  and c_id = sCourseId and c_id_no = nCourseIdNo
+ 16  INTERSECT
+ 17  SELECT t.t_time
+ 18  FROM teach t, enroll e
+ 19  WHERE e.s_id = sStudentId and e.e_year = nYear
+ 20  and e.e_semester = nSemester and t.t_year = nYear
+ 21  and t.t_semester = nSemester and e.c_id = t.c_id
+ 22  and e.c_id_no = t.c_id_no);
+ 23  BEGIN
+ 24  nYear := Date2EnrollYear(SYSDATE);
+ 25  nSemester := Date2EnrollSemester(SYSDATE);
+ 26  OPEN duplicate(sStudentId, sCourseId, nCourseId, nCourseIdNo);
+ 27  LOOP
+ 28  FETCH duplicate INTO nCnt;
+ 29  EXIT WHEN duplicate%NOTFOUND;
+ 30  END LOOP;
+ 31  CLOSE duplicate;
+ 32  END;
+ 33  /
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE emp_delete(eEmpno IN emp.empno%TYPE)
+  2  IS
+  3  not_exiest EXCEPTION;
+  4  not_manage EXCEPTION;
+  5  
+  6  CURSOR cur(eEmpno emp.empno%TYPE) IS
+  7  SELECT empno, ename, deptno, job
+  8  FROM emp
+  9  WHERE mgr = eEmpno;
+ 10  
+ 11  nCnt NUMBER;
+ 12  d_ename emp.ename%TYPE;
+ 13  m_empno emp.empno%TYPE;
+ 14  m_ename emp.ename%TYPE;
+ 15  m_deptno emp.deptno%TYPE;
+ 16  m_job emp.job%TYPE;
+ 17  
+ 18  BEGIN
+ 19  SELECT COUNT(*)
+ 20  INTO nCnt
+ 21  FROM emp
+ 22  WHERE empno = eEmpno;
+ 23  
+ 24  IF(nCnt < 1) THEN
+ 25  RAISE not_exiest;
+ 26  END IF;
+ 27  
+ 28  SELECT ename
+ 29  INTO d_ename
+ 30  FROM emp
+ 31  WHERE empno = eEmpno;
+ 32  
+ 33  DELETE FROM emp WHERE empno = eEmpno;
+ 34  COMMIT;
+ 35  
+ 36  DBMS_OUTPUT.put_line('삭제할 사원 이름 : ' || d_ename || chr(10));
+ 37  
+ 38  SELECT COUNT(*)
+ 39  INTO nCnt
+ 40  FROM emp
+ 41  WHERE mgr = eEmpno;
+ 42  
+ 43  IF(nCnt < 1) THEN
+ 44  RAISE not_manage;
+ 45  END IF;
+ 46  
+ 47  OPEN cur(eEmpno);
+ 48  DBMS_OUTPUT.put_line(RPAD('부하직원 번호',10,' ') || RPAD('부하직원 이름',10,' ') ||
+ 49  RPAD('부하직원 부서',10,' ') || RPAD('부하직원 직책',10,' '));
+ 50  
+ 51  LOOP
+ 52  FETCH cur INTO m_empno, m_ename, m_deptno, m_job;
+ 53  EXIT WHEN cur%NOTFOUND;
+ 54  DBMS_OUTPUT.put_line(RPAD(TO_CHAR(m_empno),10,' ') ||
+ 55  RPAD(m_ename,10,' ') || RPAD(TO_CHAR(m_deptno),10,' ') || RPAD(m_job,10,' '));
+ 56  END LOOP;
+ 57  nCnt := cur%ROWCOUNT;
+ 58  CLOSE cur;
+ 59  
+ 60  EXCEPTION
+ 61  WHEN not_exiest THEN
+ 62  DBMS_OUTPUT.put_line('존재하지 않는 사원입니다.');
+ 63  WHEN not_manage THEN
+ 64  DBMS_OUTPUT.put_line('부하직원이 없는 사원입니다.');
+ 65  WHEN OTHERS THEN
+ 66  DBMS_OUTPUT.put_line('ERR MESSAGE : ' || SQLERRM);
+ 67  END;
+ 68  /
+
+프로시저가 생성되었습니다.
+
+SQL> select * from emp;
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM     DEPTNO                                                                  
+---------- ---------- --------- ---------- -------- ---------- ---------- ----------                                                                  
+      7369 SMITH      CLERK           7902 80/12/17        800                    20                                                                  
+      7499 ALLEN      SALESMAN        7698 81/02/20       1600        300         30                                                                  
+      7521 WARD       SALESMAN        7698 81/02/22       1250        500         30                                                                  
+      7566 JONES      MANAGER         7839 81/04/02       2975                    20                                                                  
+      7654 MARTIN     SALESMAN        7698 81/09/28       1250       1400         30                                                                  
+      7698 BLAKE      MANAGER         7839 81/05/01       2850                    30                                                                  
+      7782 CLARK      MANAGER         7839 81/06/09       2450                    10                                                                  
+      7788 SCOTT      ANALYST         7566 87/01/13       3000                    20                                                                  
+      7839 KING       PRESIDENT            81/11/17       5000                    10                                                                  
+      7844 TURNER     SALESMAN        7698 81/09/08       1500          0         30                                                                  
+      7876 ADAMS      CLERK           7788 87/10/23       1100                    20                                                                  
+      7900 JAMES      CLERK           7698 81/12/03        950                    30                                                                  
+      7902 FORD       ANALYST         7566 81/12/03       3000                    20                                                                  
+      7934 MILLER     CLERK           7782 82/01/23       1300                    10                                                                  
+      1000 LION       SALES                21/11/17       5000                                                                                        
+      7370 JASON      ANALYST         7369 21/11/17        900                    20                                                                  
+      7904 ALVIN      SALEMAN         7788 21/11/17       1500                    20                                                                  
+
+17 행이 선택되었습니다.
+
+SQL> EXECUTE emp_delete(7566);
+삭제할 사원 이름 : JONES
+                                                                                                                            
+
+부하직원  부하직원  부하직원  부하직원                                                                                                                
+7788      SCOTT     20        ANALYST                                                                                                                 
+7902      FORD      20        ANALYST                                                                                                                 
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> select * from emp;
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM     DEPTNO                                                                  
+---------- ---------- --------- ---------- -------- ---------- ---------- ----------                                                                  
+      7369 SMITH      CLERK           7902 80/12/17        800                    20                                                                  
+      7499 ALLEN      SALESMAN        7698 81/02/20       1600        300         30                                                                  
+      7521 WARD       SALESMAN        7698 81/02/22       1250        500         30                                                                  
+      7654 MARTIN     SALESMAN        7698 81/09/28       1250       1400         30                                                                  
+      7698 BLAKE      MANAGER         7839 81/05/01       2850                    30                                                                  
+      7782 CLARK      MANAGER         7839 81/06/09       2450                    10                                                                  
+      7788 SCOTT      ANALYST         7566 87/01/13       3000                    20                                                                  
+      7839 KING       PRESIDENT            81/11/17       5000                    10                                                                  
+      7844 TURNER     SALESMAN        7698 81/09/08       1500          0         30                                                                  
+      7876 ADAMS      CLERK           7788 87/10/23       1100                    20                                                                  
+      7900 JAMES      CLERK           7698 81/12/03        950                    30                                                                  
+      7902 FORD       ANALYST         7566 81/12/03       3000                    20                                                                  
+      7934 MILLER     CLERK           7782 82/01/23       1300                    10                                                                  
+      1000 LION       SALES                21/11/17       5000                                                                                        
+      7370 JASON      ANALYST         7369 21/11/17        900                    20                                                                  
+      7904 ALVIN      SALEMAN         7788 21/11/17       1500                    20                                                                  
+
+16 행이 선택되었습니다.
+
+SQL> EXECUTE emp_delete(7934);
+삭제할 사원 이름 : MILLER
+                                                                                                                           
+
+부하직원이 없는 사원입니다.                                                                                                                           
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> select * from emp;
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM     DEPTNO                                                                  
+---------- ---------- --------- ---------- -------- ---------- ---------- ----------                                                                  
+      7369 SMITH      CLERK           7902 80/12/17        800                    20                                                                  
+      7499 ALLEN      SALESMAN        7698 81/02/20       1600        300         30                                                                  
+      7521 WARD       SALESMAN        7698 81/02/22       1250        500         30                                                                  
+      7654 MARTIN     SALESMAN        7698 81/09/28       1250       1400         30                                                                  
+      7698 BLAKE      MANAGER         7839 81/05/01       2850                    30                                                                  
+      7782 CLARK      MANAGER         7839 81/06/09       2450                    10                                                                  
+      7788 SCOTT      ANALYST         7566 87/01/13       3000                    20                                                                  
+      7839 KING       PRESIDENT            81/11/17       5000                    10                                                                  
+      7844 TURNER     SALESMAN        7698 81/09/08       1500          0         30                                                                  
+      7876 ADAMS      CLERK           7788 87/10/23       1100                    20                                                                  
+      7900 JAMES      CLERK           7698 81/12/03        950                    30                                                                  
+      7902 FORD       ANALYST         7566 81/12/03       3000                    20                                                                  
+      1000 LION       SALES                21/11/17       5000                                                                                        
+      7370 JASON      ANALYST         7369 21/11/17        900                    20                                                                  
+      7904 ALVIN      SALEMAN         7788 21/11/17       1500                    20                                                                  
+
+15 행이 선택되었습니다.
+
+SQL> EXECUTE emp_delete(9999);
+존재하지 않는 사원입니다.                                                                                                                             
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> spool off

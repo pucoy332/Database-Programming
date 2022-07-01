@@ -1,0 +1,202 @@
+SQL> declare
+  2  i binary_integer := 0;
+  3  begin
+  4  dbms_output.put_line('직책명');
+  5  dbms_output.put_line('-------');
+  6  for emp_cur in(select distinct job from emp order by job) loop
+  7  i := i+1;
+  8  dbms_output.put_line(emp_cur.job);
+  9  end loop;
+ 10  
+ 11  dbms_output.put_line(chr(10)||chr(13)||'직책의 수: '|| i);
+ 12  end;
+ 13  /
+직책명                                                                          
+-------                                                                         
+ANALYST                                                                         
+CLERK                                                                           
+MANAGER                                                                         
+PRESIDENT                                                                       
+SALESMAN                                                                        
+
+직책의 수: 5                                                                  
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> 
+SQL> declare
+  2  v_dept dept%rowtype;
+  3  cursor dept_list IS
+  4  select deptno, dname, loc
+  5  from dept;
+  6  begin
+  7  dbms_output.put_line('부서번호       부서명        위    치');
+  8  dbms_output.put_line('--------     ---------       --------');
+  9  open dept_list;
+ 10  loop
+ 11  fetch dept_list into v_dept.deptno, v_dept.dname, v_dept.loc;
+ 12  if dept_list%found then
+ 13  dbms_output.put_line(rpad(v_dept.deptno,13) ||rpad(v_dept.dname,16) || v_dept.loc);
+ 14  end if;
+ 15  exit when dept_list%notfound;
+ 16  end loop;
+ 17  close dept_list;
+ 18  exception
+ 19  when others then
+ 20  dbms_output.put_line('ERR MESSAGE: '||SQLERRM);
+ 21  end;
+ 22  /
+부서번호       부서명        위    치                                           
+--------     ---------       --------                                           
+10           ACCOUNTING      NEW YORK                                           
+20           RESEARCH        DALLAS                                             
+30           SALES           CHICAGO                                            
+40           OPERATIONS      BOSTON                                             
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> create or replace procedure emp_input
+  2  (
+  3  v_empno in number,
+  4  v_ename in VARCHAR2,
+  5  v_JOB in VARCHAR2,
+  6  v_MGR in NUMBER,
+  7  v_HIREDATE in DATE,
+  8  v_SAL in NUMBER
+  9  )
+ 10  IS
+ 11  v_deptno number;
+ 12  begin
+ 13  select deptno
+ 14  into v_deptno
+ 15  from emp
+ 16  where empno = v_MGR;
+ 17  
+ 18  if (v_job = 'SALESMAN') then
+ 19  insert INTO emp values(v_empno, v_ename, v_job, v_mgr, v_hiredate, v_sal, 10, v_deptno);
+ 20  else
+ 21  insert INTO emp values(v_empno, v_ename, v_job, v_mgr, v_hiredate, v_sal, NULL, v_deptno);
+ 22  end if;
+ 23  commit;
+ 24  exception
+ 25  when DUP_VAL_ON_INDEX then
+ 26  dbms_output.put_line('중복된 사원번호입니다.');
+ 27  end;
+ 28  /
+
+프로시저가 생성되었습니다.
+
+SQL> EXECUTE emp_input(7900,'ALVIN','SALESMAN',7788,SYSDATE,1500);
+중복된 사원번호입니다.                                                          
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> EXECUTE emp_input(7904,'ALVIN','SALESMAN',7788,SYSDATE,1500);
+
+PL/SQL 처리가 정상적으로 완료되었습니다.
+
+SQL> select * from emp;
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM       
+---------- ---------- --------- ---------- -------- ---------- ----------       
+    DEPTNO                                                                      
+----------                                                                      
+      7369 SMITH      CLERK           7902 80/12/17        800                  
+        20                                                                      
+                                                                                
+      7499 ALLEN      SALESMAN        7698 81/02/20       1600        300       
+        30                                                                      
+                                                                                
+      7521 WARD       SALESMAN        7698 81/02/22       1250        500       
+        30                                                                      
+                                                                                
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM       
+---------- ---------- --------- ---------- -------- ---------- ----------       
+    DEPTNO                                                                      
+----------                                                                      
+      7566 JONES      MANAGER         7839 81/04/02       2975                  
+        20                                                                      
+                                                                                
+      7654 MARTIN     SALESMAN        7698 81/09/28       1250       1400       
+        30                                                                      
+                                                                                
+      7698 BLAKE      MANAGER         7839 81/05/01       2850                  
+        30                                                                      
+                                                                                
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM       
+---------- ---------- --------- ---------- -------- ---------- ----------       
+    DEPTNO                                                                      
+----------                                                                      
+      7782 CLARK      MANAGER         7839 81/06/09       2450                  
+        10                                                                      
+                                                                                
+      7788 SCOTT      ANALYST         7566 87/01/13       3000                  
+        20                                                                      
+                                                                                
+      7839 KING       PRESIDENT            81/11/17       5000                  
+        10                                                                      
+                                                                                
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM       
+---------- ---------- --------- ---------- -------- ---------- ----------       
+    DEPTNO                                                                      
+----------                                                                      
+      7844 TURNER     SALESMAN        7698 81/09/08       1500          0       
+        30                                                                      
+                                                                                
+      7876 ADAMS      CLERK           7788 87/10/23       1100                  
+        20                                                                      
+                                                                                
+      7900 JAMES      CLERK           7698 81/12/03       1045                  
+        30                                                                      
+                                                                                
+
+     EMPNO ENAME      JOB              MGR HIREDATE        SAL       COMM       
+---------- ---------- --------- ---------- -------- ---------- ----------       
+    DEPTNO                                                                      
+----------                                                                      
+      7902 FORD       ANALYST         7566 81/12/03       3000                  
+        20                                                                      
+                                                                                
+      7934 MILLER     SALESMAN        7782 82/01/23       1300                  
+        10                                                                      
+                                                                                
+      7904 ALVIN      SALESMAN        7788 21/11/11       1500         10       
+        20                                                                      
+                                                                                
+
+15 행이 선택되었습니다.
+
+SQL> 
+SQL> create or replace trigger insert_trigger
+  2  before insert on shop
+  3  for each row
+  4  declare
+  5  sum_profit shop.shop_profit%type;
+  6  sum_cost shop.shop_cost%type;
+  7  sum_realprofit shop.shop_profit%type;
+  8  begin
+  9  select SUM(shop_profit), SUM(shop_cost)
+ 10  into sum_profit,sum_cost
+ 11  from shop;
+ 12  sum_realprofit := sum_profit-sum_cost;
+ 13  dbms_output.put_line('<INSERT문이 실행되기 전까지의 손익 현황>');
+ 14  dbms_output.put_line('총 수익: ' || sum_profit);
+ 15  dbms_output.put_line('총 비용: ' || sum_cost);
+ 16  dbms_output.put_line('총 순이익: ' || sum_realprofit);
+ 17  end;
+ 18  /
+
+트리거가 생성되었습니다.
+
+SQL> INSERT INTO SHOP VALUES (500, '동국상점5', 2500000, 800000);
+<INSERT문이 실행되기 전까지의 손익 현황>                                        
+총 수익: 11300000                                                               
+총 비용: 4900000                                                                
+총 순이익: 6400000                                                              
+
+1 개의 행이 만들어졌습니다.
+
+SQL> spool off
